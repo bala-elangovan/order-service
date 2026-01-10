@@ -1,0 +1,71 @@
+{
+  "external_order_id": "550e8400-e29b-41d4-a716-446655440001",
+  "customer_id": "CUST-001",
+  "order_type": "STANDARD",
+  "channel": "WEB",
+  "order_lines": [
+    {
+      "line_number": 1,
+      "item_id": 1000000001,
+      "item_name": "Apple AirPods Pro 2nd Gen",
+      "item_description": "Wireless earbuds with active noise cancellation",
+      "quantity": 2,
+      "unit_price": 249.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "discount_amount": null,
+      "fulfillment_type": "STH",
+      "estimated_ship_date": "2025-12-29",
+      "estimated_delivery_date": "2026-01-01",
+      "shipping_address": {
+        "full_name": "John Doe",
+        "address_line1": "123 Main St",
+        "address_line2": "Apt 4B",
+        "city": "San Francisco",
+        "state_province": "CA",
+        "postal_code": "94102",
+        "country": "USA",
+        "phone_number": "+1-415-555-0100",
+        "email": "john.doe@example.com"
+      }
+    },
+    {
+      "line_number": 2,
+      "item_id": 1000000002,
+      "item_name": "Sony WH-1000XM5 Headphones",
+      "item_description": "Premium wireless noise-canceling headphones",
+      "quantity": 1,
+      "unit_price": 349.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "discount_amount": 30.00,
+      "fulfillment_type": "STH",
+      "estimated_ship_date": "2025-12-29",
+      "estimated_delivery_date": "2026-01-01",
+      "shipping_address": {
+        "full_name": "John Doe",
+        "address_line1": "123 Main St",
+        "address_line2": "Apt 4B",
+        "city": "San Francisco",
+        "state_province": "CA",
+        "postal_code": "94102",
+        "country": "USA",
+        "phone_number": "+1-415-555-0100",
+        "email": "john.doe@example.com"
+      }
+    }
+  ],
+  "billing_address": {
+    "full_name": "John Doe",
+    "address_line1": "123 Main St",
+    "address_line2": "Apt 4B",
+    "city": "San Francisco",
+    "state_province": "CA",
+    "postal_code": "94102",
+    "country": "USA",
+    "phone_number": "+1-415-555-0100",
+    "email": "john.doe@example.com"
+  },
+  "notes": "Please deliver during business hours",
+  "timestamp": "2025-12-28T10:30:00"
+}
