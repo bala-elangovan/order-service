@@ -240,15 +240,14 @@ make health-check
 
 #### Order Management
 
-| Method   | Endpoint                         | Description                          |
-|----------|----------------------------------|--------------------------------------|
-| `POST`   | `/api/v1/orders`                 | Create a new order                   |
-| `GET`    | `/api/v1/orders/{id}`            | Get order by ID                      |
-| `GET`    | `/api/v1/orders`                 | List orders (paginated)              |
-| `GET`    | `/api/v1/orders?customerId={id}` | Filter orders by customer            |
-| `PATCH`  | `/api/v1/orders/{id}`            | Update order (notes, billing address)|
-| `POST`   | `/api/v1/orders/{id}/cancel`     | Cancel order                         |
-| `DELETE` | `/api/v1/orders/{id}`            | Soft-delete order (marks as cancelled)|
+| Method   | Endpoint                            | Description                          |
+|----------|-------------------------------------|--------------------------------------|
+| `POST`   | `/orders/v1`                        | Create a new order                   |
+| `GET`    | `/orders/v1/{id}`                   | Get order by ID                      |
+| `GET`    | `/orders/v1`                        | List orders (paginated)              |
+| `GET`    | `/orders/v1?customer_id={id}`       | Filter orders by customer            |
+| `PATCH`  | `/orders/v1/{id}`                   | Update order (notes, billing address)|
+| `DELETE` | `/orders/v1/{id}`                   | Cancel order (soft-delete)           |
 
 #### Health & Monitoring
 
@@ -265,7 +264,7 @@ make health-check
 
 ```bash
 # Create an order
-curl -X POST http://localhost:8080/api/v1/orders \
+curl -X POST http://localhost:8080/orders/v1 \
   -H "Content-Type: application/json" \
   -d '{
     "customer_id": "CUST-001",
