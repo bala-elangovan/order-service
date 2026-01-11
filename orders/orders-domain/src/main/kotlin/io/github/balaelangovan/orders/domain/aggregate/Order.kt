@@ -254,6 +254,42 @@ data class Order(
     }
 
     /**
+     * Transitions the order to IN_RELEASE status (partial release).
+     * Indicates some but not all lines have been released for fulfillment.
+     *
+     * @return new Order instance with IN_RELEASE status
+     * @throws InvalidStateTransitionException if transition is not allowed from current status
+     */
+    fun inRelease(): Order {
+        validateTransition(OrderStatus.IN_RELEASE)
+        return copy(status = OrderStatus.IN_RELEASE, updatedAt = LocalDateTime.now())
+    }
+
+    /**
+     * Transitions the order to RELEASED status (full release).
+     * Indicates all lines have been released for fulfillment.
+     *
+     * @return new Order instance with RELEASED status
+     * @throws InvalidStateTransitionException if transition is not allowed from current status
+     */
+    fun release(): Order {
+        validateTransition(OrderStatus.RELEASED)
+        return copy(status = OrderStatus.RELEASED, updatedAt = LocalDateTime.now())
+    }
+
+    /**
+     * Transitions the order to IN_SHIPMENT status (partial shipment).
+     * Indicates some but not all lines have been shipped.
+     *
+     * @return new Order instance with IN_SHIPMENT status
+     * @throws InvalidStateTransitionException if transition is not allowed from current status
+     */
+    fun inShipment(): Order {
+        validateTransition(OrderStatus.IN_SHIPMENT)
+        return copy(status = OrderStatus.IN_SHIPMENT, updatedAt = LocalDateTime.now())
+    }
+
+    /**
      * @return number of line items in the order
      */
     fun lineCount(): Int = lines.size
@@ -282,12 +318,22 @@ data class Order(
     /**
      * @return true if order is in CREATED status and can be modified
      */
-    fun isModifiable(): Boolean = status == OrderStatus.CREATED
+    fun isModifiable(): Boolean = status.allowsLineModification()
 
     /**
      * @return true if order is in a terminal status (DELIVERED or CANCELLED)
      */
     fun isTerminal(): Boolean = status.isTerminal()
+
+    /**
+     * @return true if order is in a partial fulfillment state (IN_RELEASE or IN_SHIPMENT)
+     */
+    fun isPartialFulfillment(): Boolean = status.isPartial()
+
+    /**
+     * @return true if the order can be cancelled from current status
+     */
+    fun canCancel(): Boolean = status.canTransitionTo(OrderStatus.CANCELLED)
 
     /**
      * @return true if this is a guest checkout order

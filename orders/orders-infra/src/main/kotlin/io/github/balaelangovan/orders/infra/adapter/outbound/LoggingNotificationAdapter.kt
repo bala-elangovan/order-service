@@ -26,6 +26,30 @@ class LoggingNotificationAdapter(private val ioDispatcher: CoroutineDispatcher =
         )
     }
 
+    override suspend fun notifyOrderInRelease(order: Order): Unit = withContext(ioDispatcher) {
+        logger.info(
+            "NOTIFICATION: Order in release (partial) - ID: {}, Customer: {}",
+            order.id,
+            order.customerId,
+        )
+    }
+
+    override suspend fun notifyOrderReleased(order: Order): Unit = withContext(ioDispatcher) {
+        logger.info(
+            "NOTIFICATION: Order released - ID: {}, Customer: {}",
+            order.id,
+            order.customerId,
+        )
+    }
+
+    override suspend fun notifyOrderInShipment(order: Order): Unit = withContext(ioDispatcher) {
+        logger.info(
+            "NOTIFICATION: Order in shipment (partial) - ID: {}, Customer: {}",
+            order.id,
+            order.customerId,
+        )
+    }
+
     override suspend fun notifyOrderShipped(order: Order): Unit = withContext(ioDispatcher) {
         logger.info(
             "NOTIFICATION: Order shipped - ID: {}, Customer: {}",

@@ -171,11 +171,44 @@ class OrderDomainService(
      * @throws ResourceNotFoundException if not found
      */
     override suspend fun updateStatus(id: OrderId, newStatus: OrderStatus): Order = when (newStatus) {
+        OrderStatus.IN_RELEASE -> inReleaseOrder(id)
+        OrderStatus.RELEASED -> releaseOrder(id)
+        OrderStatus.IN_SHIPMENT -> inShipmentOrder(id)
         OrderStatus.SHIPPED -> shipOrder(id)
         OrderStatus.DELIVERED -> deliverOrder(id)
         OrderStatus.CANCELLED -> cancelOrder(id)
         else -> findOrderOrThrow(id)
     }
+
+    /**
+     * Transitions order to IN_RELEASE status (partial release).
+     *
+     * @param id the order identifier
+     * @return the updated Order
+     * @throws ResourceNotFoundException if not found
+     */
+    override suspend fun inReleaseOrder(id: OrderId): Order =
+        transitionOrderStatus(id, Order::inRelease, notificationPort::notifyOrderInRelease)
+
+    /**
+     * Transitions order to RELEASED status (full release).
+     *
+     * @param id the order identifier
+     * @return the updated Order
+     * @throws ResourceNotFoundException if not found
+     */
+    override suspend fun releaseOrder(id: OrderId): Order =
+        transitionOrderStatus(id, Order::release, notificationPort::notifyOrderReleased)
+
+    /**
+     * Transitions order to IN_SHIPMENT status (partial shipment).
+     *
+     * @param id the order identifier
+     * @return the updated Order
+     * @throws ResourceNotFoundException if not found
+     */
+    override suspend fun inShipmentOrder(id: OrderId): Order =
+        transitionOrderStatus(id, Order::inShipment, notificationPort::notifyOrderInShipment)
 
     /**
      * Transitions order to SHIPPED status.
