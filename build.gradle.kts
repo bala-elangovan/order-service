@@ -7,4 +7,4 @@ plugins {
 }
 
 group = "io.github.balaelangovan"
-version = "1.0.0"
+version = "${property("major")}.${property("minor")}.${property("patch")}"
