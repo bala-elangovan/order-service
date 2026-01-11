@@ -11,13 +11,13 @@ postgresql = "42.7.8"
 flyway = "11.20.0"
 
 # Custom Libraries (JitPack)
+spring-conventions = "v0.3.0"
 spring-commons = "v0.1.0"
 
 [libraries]
 # Kotlin
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 # Kotlinx Coroutines
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
@@ -39,11 +39,9 @@ spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 
 # Database
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
-flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 
 # Jackson
-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
 
 # Spring Commons (JitPack)
@@ -58,3 +56,7 @@ coroutines = ["kotlinx-coroutines-core", "kotlinx-coroutines-reactor"]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+
+# Spring Conventions plugins (JitPack)
+conventions-core = { id = "io.github.balaelangovan.spring-core-conventions", version.ref = "spring-conventions" }
+conventions-web = { id = "io.github.balaelangovan.spring-web-conventions", version.ref = "spring-conventions" }

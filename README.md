@@ -1,26 +1,26 @@
-# 🛒 Order Create Service
+# Order Create Service
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.20-blue.svg)](https://kotlinlang.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.7-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![Kafka](https://img.shields.io/badge/Kafka-7.5.0-black.svg)](https://kafka.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A production-grade **Order Create microservice** demonstrating **Event-Driven Architecture**, **Hexagonal Architecture** (Ports & Adapters), **Domain-Driven Design**, and modern Spring Boot best practices with Kotlin.
 
-## 📋 Overview
+## Overview
 
 This service provides an event-driven order creation system that consumes order events from checkout service and persists order metadata with:
 
-- ✅ **Event-Driven Architecture** - Kafka event consumption from checkout service
-- ✅ **Hexagonal Architecture** - Clean separation of concerns with pure domain layer
-- ✅ **Domain-Driven Design** - Rich domain model with business logic
-- ✅ **Kafka Integration** - Consumes OrderCreatedEvent from checkout service
-- ✅ **Snapshot Storage** - Persists shipment, release, and status tracking metadata
-- ✅ **Kotlin Coroutines** - Async/non-blocking operations
-- ✅ **PostgreSQL** - Production-ready relational database
-- ✅ **Flyway** - Database migration management
-- ✅ **Docker Compose** - Local development environment with Kafka
-- ✅ **Dual-mode Operation** - REST API + Kafka consumer for flexibility
+- **Event-Driven Architecture** - Kafka event consumption from checkout service
+- **Hexagonal Architecture** - Clean separation of concerns with pure domain layer
+- **Domain-Driven Design** - Rich domain model with business logic
+- **Kafka Integration** - Consumes OrderCreatedEvent from checkout service
+- **Snapshot Storage** - Persists shipment, release, and status tracking metadata
+- **Kotlin Coroutines** - Async/non-blocking operations
+- **PostgreSQL** - Production-ready relational database
+- **Flyway** - Database migration management
+- **Docker Compose** - Local development environment with Kafka
+- **Dual-mode Operation** - REST API + Kafka consumer for flexibility
 
 ### Key Features
 
@@ -35,7 +35,7 @@ This service provides an event-driven order creation system that consumes order 
 - Health checks and metrics (Actuator)
 - Platform Gradle Plugins for zero-config Spring Boot setup
 
-## 🏗️ Architecture
+## Architecture
 
 ### Hexagonal Architecture (Ports & Adapters)
 
@@ -97,20 +97,20 @@ graph TB
 
 ### Layer Responsibilities
 
-#### 🎯 Domain Layer (Core)
+#### Domain Layer (Core)
 - **Pure Kotlin** - Zero framework dependencies
 - **Rich Domain Model** - Business logic lives here
 - **Value Objects** - Type-safe IDs, Money
 - **Aggregates** - Order (root), OrderItem
 - **Business Rules** - Enforced at domain level
 
-#### 🔧 Application Layer
+#### Application Layer
 - **Use Cases** - Input ports (CreateOrder, GetOrder, etc.)
 - **Output Ports** - Interfaces for infrastructure (LoadOrder, SaveOrder)
 - **Orchestration** - Coordinates domain objects
 - **Transaction Boundaries** - @Transactional
 
-#### 🔌 Adapter Layer
+#### Adapter Layer
 - **Driving Adapters** - REST controllers (web)
 - **Driven Adapters** - JPA repositories (persistence)
 - **Mappers** - MapStruct for DTO conversions
@@ -175,10 +175,10 @@ classDiagram
     Order --> Address
     OrderLine --> Money
 
-    note for Order "Business Rules:\n✓ Must have at least one line\n✓ All items same currency\n✓ Status transitions validated\n✓ Cannot ship cancelled orders"
+    note for Order "Business Rules:\n- Must have at least one line\n- All items same currency\n- Status transitions validated\n- Cannot ship cancelled orders"
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -219,7 +219,7 @@ curl http://localhost:8080/actuator/health
 make health-check
 ```
 
-## 📚 API Documentation
+## API Documentation
 
 ### Base URL
 - **Development**: `http://localhost:8080`
@@ -280,7 +280,7 @@ Open `api/orders.http` in IntelliJ IDEA and click the play button (▶) next to 
 
 See [api/README.md](api/README.md) for detailed API testing guide.
 
-## 🗄️ Database
+## Database
 
 ### Schema
 
@@ -322,29 +322,26 @@ make db-migrate
 make db-reset
 ```
 
-Migration files are in `src/main/resources/db/migration/`:
-- `V1__create_orders_table.sql`
-- `V2__create_order_items_table.sql`
-- `V3__add_order_analytics_indexes.sql`
-- `R__create_order_views.sql` (repeatable)
+Migration files are in `orders/orders-infra/src/main/resources/db/migration/`:
+- `V1__init_schema.sql`
 
-## 🛠️ Development
+## Development
 
 ### Platform Gradle Plugins
 
 This project uses the **Platform Gradle Plugins** to enforce best practices and eliminate boilerplate build configuration.
 
 **What you get automatically:**
-- ✅ **Java 21** toolchain
-- ✅ **Spring Boot Web** (MVC, Validation, AOP)
-- ✅ **Code formatting** via Spotless (google-java-format, ktlint)
-- ✅ **Automatic removal of unused imports**
-- ✅ **JaCoCo code coverage** with comprehensive reporting
-- ✅ **Lombok** for reducing boilerplate
-- ✅ **Apache Commons Lang3** utilities
-- ✅ **MapStruct** for type-safe object mapping
-- ✅ **Comprehensive testing** (JUnit 5, MockK, Spring Test)
-- ✅ **Strict dependency resolution** (fails on conflicts)
+- **Java 21** toolchain
+- **Spring Boot Web** (MVC, Validation, AOP)
+- **Code formatting** via Spotless (google-java-format, ktlint)
+- **Automatic removal of unused imports**
+- **JaCoCo code coverage** with comprehensive reporting
+- **Lombok** for reducing boilerplate
+- **Apache Commons Lang3** utilities
+- **MapStruct** for type-safe object mapping
+- **Comprehensive testing** (JUnit 5, MockK, Spring Test)
+- **Strict dependency resolution** (fails on conflicts)
 
 **Simple build configuration:**
 ```kotlin
@@ -448,41 +445,42 @@ make health-check      # Check app health
 ### Project Structure
 
 ```
-order-create-service/
+order-service/
 ├── orders/
-│   ├── orders-domain/             # 🎯 DOMAIN LAYER (Pure Kotlin)
+│   ├── orders-domain/             # DOMAIN LAYER (Pure Kotlin)
 │   │   ├── aggregate/             # Order, OrderLine aggregates
 │   │   ├── valueobject/           # OrderId, Money, Address VOs
-│   │   ├── port/in/               # Input ports (use cases)
-│   │   ├── port/out/              # Output ports (persistence, notification)
+│   │   ├── port/inbound/          # Input ports (use cases)
+│   │   ├── port/outbound/         # Output ports (persistence, notification)
 │   │   ├── service/               # Domain services
 │   │   ├── exception/             # Domain exceptions
 │   │   ├── event/                 # Event models (OrderCreatedEvent)
 │   │   └── mapper/                # DomainMapper interface
 │   │
-│   ├── orders-app/                # 🔧 APPLICATION LAYER
+│   ├── orders-app/                # APPLICATION LAYER (REST API)
 │   │   ├── controller/            # REST controllers
 │   │   ├── dto/                   # Request/Response DTOs
 │   │   ├── mapper/                # RequestMapper, ResponseMapper
 │   │   ├── orchestrator/          # OrderOrchestrator (use case impl)
-│   │   ├── exception/             # GlobalExceptionHandler
 │   │   └── resources/
-│   │       ├── application.yml    # Configuration
-│   │       ├── application-kafka.yml  # Kafka configuration
-│   │       └── db/migration/      # Flyway migrations
+│   │       └── application.yml    # Configuration
 │   │
-│   └── orders-infra/              # 🔌 INFRASTRUCTURE LAYER
-│       ├── adapter/               # Driven adapters
-│       │   ├── OrderRepositoryAdapter.kt
-│       │   ├── LoggingNotificationAdapter.kt
-│       │   └── OrderEventConsumerAdapter.kt  # Kafka consumer
-│       ├── mapper/                # PersistenceMapper, OrderEventMapper
+│   ├── orders-consumer/           # KAFKA CONSUMER SERVICE
+│   │   ├── adapter/               # Kafka consumer adapters
+│   │   ├── config/                # Kafka configuration
+│   │   └── resources/
+│   │       └── application.yml    # Consumer configuration
+│   │
+│   └── orders-infra/              # INFRASTRUCTURE LAYER
+│       ├── adapter/outbound/      # Driven adapters (repository, notification)
+│       ├── annotation/            # Custom annotations
+│       ├── config/                # ApplicationConfig
 │       ├── entity/                # JPA entities
-│       │   ├── OrderEntity.kt
-│       │   ├── ShipmentSnapshotEntity.kt
-│       │   └── ReleaseSnapshotEntity.kt
+│       ├── generator/             # ID generators
+│       ├── mapper/                # PersistenceMapper
 │       ├── repository/            # Spring Data JPA repositories
-│       └── config/                # ApplicationConfig
+│       └── resources/
+│           └── db/migration/      # Flyway migrations
 │
 ├── api/                           # IntelliJ .http test files
 ├── docker-compose.yml             # PostgreSQL + Kafka + Zookeeper
@@ -514,7 +512,7 @@ make format
 make check-format
 ```
 
-## 🐳 Docker
+## Docker
 
 ### Local Development with Docker Compose
 
@@ -551,7 +549,7 @@ The included `Dockerfile` uses multi-stage builds:
 - **Stage 1**: Build with Gradle
 - **Stage 2**: Run with JRE (optimized for production)
 
-## 📊 Monitoring & Observability
+## Monitoring & Observability
 
 ### Health Checks
 
@@ -584,7 +582,7 @@ Logs include:
 - MDC (Mapped Diagnostic Context)
 - Structured JSON logging (configurable)
 
-## 🔐 Security
+## Security
 
 ### Authorization
 
@@ -603,7 +601,7 @@ All requests require:
 - `X-User-Groups`: Comma-separated authorized groups
 - `X-Transaction-Id`: Unique transaction ID (optional)
 
-## 🚦 Order State Machine
+## Order State Machine
 
 ```mermaid
 stateDiagram-v2
@@ -631,7 +629,7 @@ stateDiagram-v2
     end note
 ```
 
-## 🎯 Architecture Decisions
+## Architecture Decisions
 
 ### Why Hexagonal Architecture?
 
@@ -664,7 +662,7 @@ stateDiagram-v2
 3. **Validation** - Rules enforced at creation
 4. **Immutability** - Thread-safe by default
 
-## 📈 Performance
+## Performance
 
 ### Database Indexes
 
@@ -686,7 +684,7 @@ HikariCP configuration:
 
 Kotlin coroutines with `suspend` functions for non-blocking I/O.
 
-## 🎯 Event-Driven Architecture
+## Event-Driven Architecture
 
 ### Event Flow
 
@@ -729,7 +727,7 @@ The service consumes `OrderCreatedEvent` with the following structure:
 - **Auto Offset Reset**: earliest
 - **Manual Commit**: Acknowledgment-based for reliability
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 ### Redis Caching
 - Cache frequently accessed orders
@@ -746,7 +744,7 @@ The service consumes `OrderCreatedEvent` with the following structure:
 - gRPC API for service-to-service communication
 - WebSocket for real-time order status updates
 
-## 🤝 Contributing
+## Contributing
 
 This is a demo project, but contributions are welcome!
 
@@ -756,23 +754,6 @@ This is a demo project, but contributions are welcome!
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Spring Boot Team** - Amazing framework
-- **Hexagonal Architecture** - Alistair Cockburn
-- **Domain-Driven Design** - Eric Evans
-- **Platform Commons** - Shared infrastructure components
-
-## 📞 Contact
-
-For questions or feedback:
-- GitHub Issues: [Create an issue](https://github.com/bala-lab-projects/order-create-service/issues)
-- Email: platform@github.io
-
----
-
-**Built with ❤️ using Kotlin, Spring Boot, Kafka, and Event-Driven Architecture**

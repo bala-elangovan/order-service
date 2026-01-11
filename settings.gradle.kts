@@ -4,12 +4,22 @@ pluginManagement {
         mavenCentral()
         maven("https://jitpack.io")
     }
+    // Map custom plugin IDs to JitPack coordinates
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.namespace == "io.github.balaelangovan") {
+                useModule("com.github.bala-elangovan.gradle-plugins:spring-conventions:${requested.version}")
+            }
+        }
+    }
 }
 
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
+        mavenLocal()
         maven("https://jitpack.io")
     }
 }
