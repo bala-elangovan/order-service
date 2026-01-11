@@ -1,0 +1,23 @@
+### Health Check and Actuator Endpoints
+### Base path: /orders/v1/actuator
+
+### 1. Health Check
+GET {{baseUrl}}/orders/v1/actuator/health
+
+### 2. Liveness Probe (K8s)
+GET {{baseUrl}}/orders/v1/actuator/health/liveness
+
+### 3. Readiness Probe (K8s)
+GET {{baseUrl}}/orders/v1/actuator/health/readiness
+
+### 4. Application Info
+GET {{baseUrl}}/orders/v1/actuator/info
+
+### 5. Metrics List
+GET {{baseUrl}}/orders/v1/actuator/metrics
+
+### 6. HTTP Server Requests Metrics
+GET {{baseUrl}}/orders/v1/actuator/metrics/http.server.requests
+
+### 7. Prometheus Metrics (for monitoring)
+GET {{baseUrl}}/orders/v1/actuator/prometheus

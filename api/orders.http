@@ -1,0 +1,454 @@
+### Order Management Service API Tests
+### Use IntelliJ IDEA HTTP Client to run these requests
+###
+### Base Path: /orders/v1
+### This service supports both REST API and Kafka event consumption
+###
+### Order Types: STANDARD, GUEST, RETURN, EXCHANGE, STORE, SUBSCRIPTION
+### Fulfillment Types: STH, BOPS, STS
+### Line Statuses: CREATED, ALLOCATED, RELEASED, SHIPPED, SHIPPED_AND_INVOICED, DELIVERED, RETURN_INITIATED, RETURN_COMPLETED, CANCELLED
+
+
+### 1. Create Order via REST API (Success Case - Ship to Home)
+### Both lines ship to same address - only one address row is stored (deduplication)
+POST {{baseUrl}}/orders/v1/
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+X-Transaction-Id: {{$uuid}}
+
+{
+  "customer_id": "CUST-001",
+  "order_type": "STANDARD",
+  "channel": "WEB",
+  "lines": [
+    {
+      "item_id": "1000000001",
+      "item_name": "Apple AirPods Pro 2nd Gen",
+      "item_description": "Wireless earbuds with active noise cancellation",
+      "quantity": 2,
+      "unit_price": 249.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "discount_amount": null,
+      "fulfillment_type": "STH",
+      "shipping_address": {
+        "full_name": "John Doe",
+        "address_line_1": "123 Main St",
+        "address_line_2": "Apt 4B",
+        "city": "San Francisco",
+        "state_province": "CA",
+        "postal_code": "94102",
+        "country": "USA",
+        "phone_number": "+1-415-555-0100",
+        "email": "john.doe@example.com"
+      }
+    },
+    {
+      "item_id": "1000000002",
+      "item_name": "Sony WH-1000XM5 Headphones",
+      "item_description": "Premium wireless noise-canceling headphones",
+      "quantity": 1,
+      "unit_price": 349.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "discount_amount": 30.00,
+      "fulfillment_type": "STH",
+      "shipping_address": {
+        "full_name": "John Doe",
+        "address_line_1": "123 Main St",
+        "address_line_2": "Apt 4B",
+        "city": "San Francisco",
+        "state_province": "CA",
+        "postal_code": "94102",
+        "country": "USA",
+        "phone_number": "+1-415-555-0100",
+        "email": "john.doe@example.com"
+      }
+    }
+  ],
+  "billing_address": {
+    "full_name": "John Doe",
+    "address_line_1": "123 Main St",
+    "address_line_2": "Apt 4B",
+    "city": "San Francisco",
+    "state_province": "CA",
+    "postal_code": "94102",
+    "country": "USA",
+    "phone_number": "+1-415-555-0100",
+    "email": "john.doe@example.com"
+  },
+  "notes": "Please deliver during business hours"
+}
+
+### 2. Create Guest Order (No account required)
+POST {{baseUrl}}/orders/v1/
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+X-Transaction-Id: {{$uuid}}
+
+{
+  "customer_id": "GUEST-001",
+  "order_type": "GUEST",
+  "channel": "WEB",
+  "lines": [
+    {
+      "item_id": "1000000003",
+      "item_name": "Anker USB-C Charging Cable 6ft",
+      "item_description": "Braided nylon fast charging cable",
+      "quantity": 1,
+      "unit_price": 19.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "fulfillment_type": "STH",
+      "shipping_address": {
+        "full_name": "Sarah Johnson",
+        "address_line_1": "742 Evergreen Terrace",
+        "city": "Los Angeles",
+        "state_province": "CA",
+        "postal_code": "90001",
+        "country": "USA",
+        "email": "sarah.johnson@example.com"
+      }
+    }
+  ],
+  "billing_address": {
+    "full_name": "Sarah Johnson",
+    "address_line_1": "742 Evergreen Terrace",
+    "city": "Los Angeles",
+    "state_province": "CA",
+    "postal_code": "90001",
+    "country": "USA",
+    "email": "sarah.johnson@example.com"
+  }
+}
+
+### 3. Create Mixed Fulfillment Order (STH + BOPS)
+### STH line ships to customer, BOPS line uses store pickup location as shipping address
+POST {{baseUrl}}/orders/v1/
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+X-Transaction-Id: {{$uuid}}
+
+{
+  "customer_id": "CUST-002",
+  "order_type": "STANDARD",
+  "channel": "MOBILE",
+  "lines": [
+    {
+      "item_id": "1000000004",
+      "item_name": "Nike Air Max 270 Running Shoes",
+      "quantity": 1,
+      "unit_price": 159.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "fulfillment_type": "STH",
+      "shipping_address": {
+        "full_name": "Jane Smith",
+        "address_line_1": "456 Oak Ave",
+        "city": "Portland",
+        "state_province": "OR",
+        "postal_code": "97201",
+        "country": "USA",
+        "phone_number": "+1-503-555-0200",
+        "email": "jane.smith@example.com"
+      }
+    },
+    {
+      "item_id": "1000000005",
+      "item_name": "Lululemon Yoga Mat 5mm",
+      "quantity": 2,
+      "unit_price": 78.00,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "fulfillment_type": "BOPS",
+      "shipping_address": {
+        "full_name": "Portland Downtown Store",
+        "address_line_1": "100 Store Plaza",
+        "city": "Portland",
+        "state_province": "OR",
+        "postal_code": "97204",
+        "country": "USA",
+        "phone_number": "+1-503-555-1000"
+      }
+    }
+  ],
+  "billing_address": {
+    "full_name": "Jane Smith",
+    "address_line_1": "456 Oak Ave",
+    "city": "Portland",
+    "state_province": "OR",
+    "postal_code": "97201",
+    "country": "USA",
+    "phone_number": "+1-503-555-0200",
+    "email": "jane.smith@example.com"
+  }
+}
+
+### 4. Get Order by ID
+@orderId = 10-20251230-0000001
+GET {{baseUrl}}/orders/v1/{{orderId}}
+X-User-Id: {{userId}}
+
+### 5. List All Orders (with pagination)
+GET {{baseUrl}}/orders/v1?page=0&size=20
+X-User-Id: {{userId}}
+
+### 6. Get Orders by Customer ID
+GET {{baseUrl}}/orders/v1?customerId=CUST-001
+X-User-Id: {{userId}}
+
+### 7. Update Order (notes and billing address)
+PATCH {{baseUrl}}/orders/v1/{{orderId}}
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+
+{
+  "notes": "Updated delivery instructions - leave at front door",
+  "billing_address": {
+    "full_name": "John Doe",
+    "address_line_1": "456 New Address St",
+    "address_line_2": "Suite 200",
+    "city": "San Francisco",
+    "state_province": "CA",
+    "postal_code": "94103",
+    "country": "USA",
+    "phone_number": "+1-415-555-0200",
+    "email": "john.doe.updated@example.com"
+  }
+}
+
+### 8. Update Order (notes only)
+PATCH {{baseUrl}}/orders/v1/{{orderId}}
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+
+{
+  "notes": "Updated notes only"
+}
+
+### 9. Create Order for Cancel Test
+POST {{baseUrl}}/orders/v1/
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+
+{
+  "customer_id": "CUST-003",
+  "order_type": "STANDARD",
+  "channel": "MOBILE",
+  "lines": [
+    {
+      "item_id": "1000000006",
+      "item_name": "Kindle Paperwhite 11th Gen",
+      "quantity": 5,
+      "unit_price": 149.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "fulfillment_type": "STH",
+      "shipping_address": {
+        "full_name": "Jane Smith",
+        "address_line_1": "456 Oak Ave",
+        "city": "Portland",
+        "state_province": "OR",
+        "postal_code": "97201",
+        "country": "USA",
+        "phone_number": "+1-503-555-0200",
+        "email": "jane.smith@example.com"
+      }
+    }
+  ],
+  "billing_address": {
+    "full_name": "Jane Smith",
+    "address_line_1": "456 Oak Ave",
+    "city": "Portland",
+    "state_province": "OR",
+    "postal_code": "97201",
+    "country": "USA",
+    "phone_number": "+1-503-555-0200",
+    "email": "jane.smith@example.com"
+  }
+}
+
+### 10. Cancel Order
+@orderIdToCancel = 10-20251230-0000002
+POST {{baseUrl}}/orders/v1/{{orderIdToCancel}}/cancel
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+
+### 11. Delete Order
+DELETE {{baseUrl}}/orders/v1/{{orderIdToCancel}}
+X-User-Id: {{userId}}
+X-User-Groups: order-admins
+
+### 12. Get Non-Existent Order (expect 404)
+GET {{baseUrl}}/orders/v1/00000000-0000-0000-0000-000000000000
+X-User-Id: {{userId}}
+
+### 13. Create Order with Invalid Data (expect 400)
+POST {{baseUrl}}/orders/v1/
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+
+{
+  "customer_id": "",
+  "lines": []
+}
+
+### 14. Create VIP Order with Large Amount (CALL_CENTER)
+### Both lines ship to same address - only one address row is stored (deduplication)
+POST {{baseUrl}}/orders/v1/
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+
+{
+  "customer_id": "CUST-VIP-001",
+  "order_type": "STANDARD",
+  "channel": "CALL_CENTER",
+  "lines": [
+    {
+      "item_id": "1000000007",
+      "item_name": "MacBook Pro 16-inch M3 Max",
+      "item_description": "Apple laptop with M3 Max chip, 36GB RAM",
+      "quantity": 3,
+      "unit_price": 3499.00,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "discount_amount": 200.00,
+      "fulfillment_type": "STH",
+      "shipping_address": {
+        "full_name": "John Doe",
+        "address_line_1": "789 Enterprise Blvd",
+        "address_line_2": "Suite 1000",
+        "city": "Seattle",
+        "state_province": "WA",
+        "postal_code": "98101",
+        "country": "USA",
+        "phone_number": "+1-206-555-0300",
+        "email": "john.doe@techcorp.com"
+      }
+    },
+    {
+      "item_id": "1000000008",
+      "item_name": "Dell UltraSharp 32 4K Monitor",
+      "item_description": "32-inch 4K USB-C Hub Monitor",
+      "quantity": 2,
+      "unit_price": 899.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "fulfillment_type": "STH",
+      "shipping_address": {
+        "full_name": "John Doe",
+        "address_line_1": "789 Enterprise Blvd",
+        "address_line_2": "Suite 1000",
+        "city": "Seattle",
+        "state_province": "WA",
+        "postal_code": "98101",
+        "country": "USA",
+        "phone_number": "+1-206-555-0300",
+        "email": "john.doe@techcorp.com"
+      }
+    }
+  ],
+  "billing_address": {
+    "full_name": "John Doe",
+    "address_line_1": "789 Enterprise Blvd",
+    "address_line_2": "Suite 1000",
+    "city": "Seattle",
+    "state_province": "WA",
+    "postal_code": "98101",
+    "country": "USA",
+    "phone_number": "+1-206-555-0300",
+    "email": "john.doe@techcorp.com"
+  },
+  "notes": "Priority handling required"
+}
+
+### 15. Create Return Order
+### For returns, shipping address is the returns center
+POST {{baseUrl}}/orders/v1/
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+
+{
+  "customer_id": "CUST-001",
+  "order_type": "RETURN",
+  "channel": "WEB",
+  "lines": [
+    {
+      "item_id": "1000000001",
+      "item_name": "Apple AirPods Pro 2nd Gen (Return)",
+      "quantity": 1,
+      "unit_price": 249.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "fulfillment_type": "STH",
+      "shipping_address": {
+        "full_name": "Returns Center",
+        "address_line_1": "100 Warehouse Way",
+        "city": "Reno",
+        "state_province": "NV",
+        "postal_code": "89501",
+        "country": "USA"
+      }
+    }
+  ],
+  "billing_address": {
+    "full_name": "John Doe",
+    "address_line_1": "123 Main St",
+    "city": "San Francisco",
+    "state_province": "CA",
+    "postal_code": "94102",
+    "country": "USA",
+    "email": "john.doe@example.com"
+  },
+  "notes": "Return for order ORD-12345"
+}
+
+### 16. Create In-Store Order
+### BOPS order - shipping address is the store pickup location
+POST {{baseUrl}}/orders/v1/
+Content-Type: application/json
+X-User-Id: {{userId}}
+X-User-Groups: {{userGroups}}
+
+{
+  "customer_id": "CUST-STORE-001",
+  "order_type": "STORE",
+  "channel": "POS",
+  "lines": [
+    {
+      "item_id": "1000000009",
+      "item_name": "Dyson V15 Detect Vacuum",
+      "quantity": 1,
+      "unit_price": 749.99,
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "fulfillment_type": "BOPS",
+      "shipping_address": {
+        "full_name": "Chicago Retail Store",
+        "address_line_1": "500 Retail Plaza",
+        "city": "Chicago",
+        "state_province": "IL",
+        "postal_code": "60601",
+        "country": "USA",
+        "phone_number": "+1-312-555-0100"
+      }
+    }
+  ],
+  "billing_address": {
+    "full_name": "Jane Smith",
+    "address_line_1": "221 Baker Street",
+    "city": "Chicago",
+    "state_province": "IL",
+    "postal_code": "60601",
+    "country": "USA"
+  }
+}

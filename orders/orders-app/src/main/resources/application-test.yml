@@ -1,0 +1,26 @@
+# Test profile configuration
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/orders_test
+    username: orders_user
+    password: orders_pass
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    clean-disabled: false
+
+# Logging
+logging:
+  level:
+    root: INFO
+    io.github.balaelangovan: DEBUG
+    org.springframework.test: DEBUG
+
+# Server
+server:
+  port: 8081

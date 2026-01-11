@@ -1,0 +1,132 @@
+{
+  "shipment_id": "2025122800001",
+  "order_id": "10-20251228-0000001",
+  "shipment_status": "SHIPPED",
+  "tracking_number": "1Z999AA10123456784",
+  "event_timestamp": "2025-12-29T14:30:00",
+  "payload": {
+    "shipment_key": "20251229143000482811",
+    "shipment_id": "2025122800001",
+    "release_key": "20251228110000392711",
+    "release_id": "2025122800001",
+    "order_key": "550e8400-e29b-41d4-a716-446655440001",
+    "order_id": "10-20251228-0000001",
+    "ship_node": "DC001",
+    "ship_node_type": "DC",
+    "status": "SHIPPED",
+    "status_description": "Shipped",
+    "status_date": "2025-12-29T14:30:00",
+    "carrier": "UPS",
+    "scac": "UPSN",
+    "service_type": "GROUND",
+    "bill_of_lading": "BOL-2025122900001",
+    "ship_date": "2025-12-29T14:30:00",
+    "expected_delivery_date": "2025-12-31T18:00:00",
+    "actual_delivery_date": null,
+    "total_weight": 2.5,
+    "weight_uom": "LB",
+    "total_volume": 0.25,
+    "volume_uom": "CFT",
+    "total_quantity": 3,
+    "total_lines": 2,
+    "ship_from_address": {
+      "address_id": "DC001",
+      "full_name": "Distribution Center 001",
+      "address_line1": "1000 Warehouse Blvd",
+      "address_line2": null,
+      "city": "Memphis",
+      "state_province": "TN",
+      "postal_code": "38118",
+      "country": "USA",
+      "phone_number": "+1-901-555-0100",
+      "email": null
+    },
+    "ship_to_address": {
+      "full_name": "John Doe",
+      "address_line1": "123 Main St",
+      "address_line2": "Apt 4B",
+      "city": "San Francisco",
+      "state_province": "CA",
+      "postal_code": "94102",
+      "country": "USA",
+      "phone_number": "+1-415-555-0100",
+      "email": "john.doe@example.com"
+    },
+    "containers": [
+      {
+        "container_key": "20251229143000482811001",
+        "container_no": "PKG001",
+        "container_type": "CARTON",
+        "tracking_number": "1Z999AA10123456784",
+        "tracking_url": "https://www.ups.com/track?tracknum=1Z999AA10123456784",
+        "status": "SHIPPED",
+        "status_description": "Shipped",
+        "status_date": "2025-12-29T14:30:00",
+        "weight": 2.5,
+        "weight_uom": "LB",
+        "length": 12.0,
+        "width": 10.0,
+        "height": 8.0,
+        "dimension_uom": "IN",
+        "container_details": [
+          {
+            "line_key": "a1b2c3d4-e5f6-7890-abcd-ef1234567001",
+            "item_id": 1000000001,
+            "quantity": 2
+          },
+          {
+            "line_key": "a1b2c3d4-e5f6-7890-abcd-ef1234567002",
+            "item_id": 1000000002,
+            "quantity": 1
+          }
+        ]
+      }
+    ],
+    "shipment_lines": [
+      {
+        "shipment_line_key": "20251229143000482811001",
+        "line_key": "a1b2c3d4-e5f6-7890-abcd-ef1234567001",
+        "line_number": 1,
+        "item_id": 1000000001,
+        "item_name": "Apple AirPods Pro 2nd Gen",
+        "item_description": "Wireless earbuds with active noise cancellation",
+        "quantity": 2,
+        "unit_price": 249.99,
+        "currency": "USD",
+        "subtotal": 499.98,
+        "tax_amount": 39.99,
+        "total_amount": 539.98
+      },
+      {
+        "shipment_line_key": "20251229143000482811002",
+        "line_key": "a1b2c3d4-e5f6-7890-abcd-ef1234567002",
+        "line_number": 2,
+        "item_id": 1000000002,
+        "item_name": "Sony WH-1000XM5 Headphones",
+        "item_description": "Premium wireless noise-canceling headphones",
+        "quantity": 1,
+        "unit_price": 349.99,
+        "currency": "USD",
+        "subtotal": 349.99,
+        "tax_amount": 25.60,
+        "discount_amount": 30.00,
+        "total_amount": 345.59
+      }
+    ],
+    "tracking_events": [
+      {
+        "event_key": "20251229143000482811EVT001",
+        "event_type": "SHIPPED",
+        "event_date": "2025-12-29T14:30:00",
+        "location": "Memphis, TN",
+        "description": "Shipment picked up"
+      }
+    ],
+    "audit": {
+      "created_by": "WMS_AGENT",
+      "created_date": "2025-12-29T14:00:00",
+      "modified_by": "SHIP_CONFIRM_AGENT",
+      "modified_date": "2025-12-29T14:30:00"
+    }
+  }
+}

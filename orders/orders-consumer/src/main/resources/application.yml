@@ -1,0 +1,99 @@
+spring:
+  application:
+    name: order-consumer-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orders
+    username: orders_user
+    password: orders_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Flyway enabled - migrations are in orders-infra module (shared)
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: UTC
+
+  # Kafka configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: order-consumer-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: io.github.balaelangovan.orders.domain.event
+        spring.json.use.type.headers: true
+    listener:
+      ack-mode: manual
+
+# Kafka topics configuration
+kafka:
+  topics:
+    order-created: checkout-order-create
+    release-events: release-events
+    shipment-events: shipment-events
+
+# Server configuration - minimal, just for health checks
+server:
+  port: 8081
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+# Application info
+info:
+  app:
+    name: ${spring.application.name}
+    description: Order Consumer Service - Event-driven order, release, and shipment event processing
+    version: 1.0.0
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    io.github.balaelangovan: DEBUG
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

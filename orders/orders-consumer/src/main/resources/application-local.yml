@@ -1,0 +1,31 @@
+# Local profile configuration for local development
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orders
+    username: orders_user
+    password: orders_pass
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# Logging - verbose in local
+logging:
+  level:
+    root: INFO
+    io.github.balaelangovan: TRACE
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN
+
+# Management endpoints - show all details in local
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
