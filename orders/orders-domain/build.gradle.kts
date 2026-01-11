@@ -1,17 +1,7 @@
-buildscript {
-    repositories {
-        maven("https://jitpack.io")
-    }
-    dependencies {
-        classpath("com.github.bala-elangovan.gradle-plugins:spring-conventions:v0.1.0")
-    }
-}
-
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.conventions.core)
 }
-
-apply(plugin = "io.github.balaelangovan.spring-core-conventions")
 
 // orders-domain is a library, not an application - disable bootJar
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
@@ -28,7 +18,6 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.jackson.module.kotlin)
 
-    // Test
-    testImplementation(libs.kotlin.test)
+    // Test - Kotest and MockK provided by spring-conventions plugin
     testImplementation(libs.kotlinx.coroutines.test)
 }

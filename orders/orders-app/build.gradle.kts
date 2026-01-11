@@ -1,19 +1,9 @@
-buildscript {
-    repositories {
-        maven("https://jitpack.io")
-    }
-    dependencies {
-        classpath("com.github.bala-elangovan.gradle-plugins:spring-conventions:v0.1.0")
-    }
-}
-
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.kotlin.jpa)
+    alias(libs.plugins.conventions.web)
 }
-
-apply(plugin = "io.github.balaelangovan.spring-web-conventions")
 
 dependencies {
     // Implementation
