@@ -2,7 +2,7 @@
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.20-blue.svg)](https://kotlinlang.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![Kafka](https://img.shields.io/badge/Kafka-7.5.0-black.svg)](https://kafka.apache.org/)
+[![Kafka](https://img.shields.io/badge/Kafka-4.1.1-black.svg)](https://kafka.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A production-grade **Order Create microservice** demonstrating **Event-Driven Architecture**, **Hexagonal Architecture** (Ports & Adapters), **Domain-Driven Design**, and modern Spring Boot best practices with Kotlin.
@@ -27,9 +27,9 @@ This service provides an event-driven order creation system that consumes order 
 - Consume order created events from Kafka (checkout-order-create topic)
 - Persist order and order line metadata
 - Store snapshot details of shipments, releases, and status tracking
-- Order lifecycle management (Draft → Confirmed → Shipped → Delivered)
+- Order lifecycle management (Created → Released → Shipped → Delivered with partial fulfillment support)
 - Rich domain model with business rule enforcement
-- Type-safe value objects (OrderId, CustomerId, ProductId, Money)
+- Type-safe value objects (OrderId, CustomerId, ItemId, Money)
 - Comprehensive error handling and validation
 - RESTful API for backward compatibility and queries
 - Health checks and metrics (Actuator)
@@ -101,7 +101,7 @@ graph TB
 - **Pure Kotlin** - Zero framework dependencies
 - **Rich Domain Model** - Business logic lives here
 - **Value Objects** - Type-safe IDs, Money
-- **Aggregates** - Order (root), OrderItem
+- **Aggregates** - Order (root), OrderLine
 - **Business Rules** - Enforced at domain level
 
 #### Application Layer
@@ -123,32 +123,39 @@ classDiagram
     class Order {
         +OrderId id
         +CustomerId customerId
+        +OrderType orderType
+        +Channel channel
         +OrderStatus status
         +List~OrderLine~ lines
-        +Address shippingAddress
         +Address billingAddress
         +Money totalAmount
         +create() Order
-        +confirm() void
-        +ship() void
-        +deliver() void
-        +cancel() void
+        +inRelease() Order
+        +release() Order
+        +inShipment() Order
+        +ship() Order
+        +deliver() Order
+        +cancel() Order
     }
 
     class OrderLine {
         +LineItemId id
-        +ProductId productId
+        +ItemId itemId
         +String itemName
         +int quantity
         +Money unitPrice
         +Money subtotal
+        +FulfillmentType fulfillmentType
+        +Address shippingAddress
         +create() OrderLine
     }
 
     class OrderStatus {
         <<enumeration>>
-        DRAFT
-        CONFIRMED
+        CREATED
+        IN_RELEASE
+        RELEASED
+        IN_SHIPMENT
         SHIPPED
         DELIVERED
         CANCELLED
@@ -174,9 +181,13 @@ classDiagram
     Order --> Money
     Order --> Address
     OrderLine --> Money
-
-    note for Order "Business Rules:\n- Must have at least one line\n- All items same currency\n- Status transitions validated\n- Cannot ship cancelled orders"
 ```
+
+**Business Rules:**
+- Order must have at least one line item
+- All line items must use the same currency
+- Status transitions are validated (see state machine below)
+- Cannot modify orders in terminal status (DELIVERED, CANCELLED)
 
 ## Quick Start
 
@@ -229,18 +240,15 @@ make health-check
 
 #### Order Management
 
-| Method | Endpoint | Description | Auth Groups |
-|--------|----------|-------------|-------------|
-| `POST` | `/api/v1/orders` | Create order | order-admins, order-users |
-| `GET` | `/api/v1/orders/{id}` | Get order by ID | - |
-| `GET` | `/api/v1/orders` | List orders (paginated) | - |
-| `GET` | `/api/v1/orders?customerId={id}` | Get customer orders | - |
-| `POST` | `/api/v1/orders/{id}/confirm` | Confirm order | order-admins |
-| `POST` | `/api/v1/orders/{id}/ship` | Ship order | order-admins |
-| `POST` | `/api/v1/orders/{id}/deliver` | Deliver order | order-admins |
-| `POST` | `/api/v1/orders/{id}/cancel` | Cancel order | order-admins, order-users |
-| `PATCH` | `/api/v1/orders/{id}/status` | Update status | order-admins, order-users |
-| `DELETE` | `/api/v1/orders/{id}` | Delete order | order-admins |
+| Method   | Endpoint                         | Description                          |
+|----------|----------------------------------|--------------------------------------|
+| `POST`   | `/api/v1/orders`                 | Create a new order                   |
+| `GET`    | `/api/v1/orders/{id}`            | Get order by ID                      |
+| `GET`    | `/api/v1/orders`                 | List orders (paginated)              |
+| `GET`    | `/api/v1/orders?customerId={id}` | Filter orders by customer            |
+| `PATCH`  | `/api/v1/orders/{id}`            | Update order (notes, billing address)|
+| `POST`   | `/api/v1/orders/{id}/cancel`     | Cancel order                         |
+| `DELETE` | `/api/v1/orders/{id}`            | Soft-delete order (marks as cancelled)|
 
 #### Health & Monitoring
 
@@ -259,18 +267,37 @@ make health-check
 # Create an order
 curl -X POST http://localhost:8080/api/v1/orders \
   -H "Content-Type: application/json" \
-  -H "X-User-Id: user-123" \
-  -H "X-User-Groups: order-users" \
   -d '{
-    "customerId": "CUST-001",
-    "items": [
+    "customer_id": "CUST-001",
+    "order_type": "STANDARD",
+    "channel": "WEB",
+    "lines": [
       {
-        "productId": "PROD-001",
+        "item_id": "1234567890",
+        "item_name": "Widget Pro",
         "quantity": 2,
-        "unitPrice": 29.99,
-        "currency": "USD"
+        "unit_price": 29.99,
+        "currency": "USD",
+        "tax_rate": 0.08,
+        "fulfillment_type": "STH",
+        "shipping_address": {
+          "full_name": "John Doe",
+          "address_line1": "123 Main St",
+          "city": "New York",
+          "state_province": "NY",
+          "postal_code": "10001",
+          "country": "USA"
+        }
       }
-    ]
+    ],
+    "billing_address": {
+      "full_name": "John Doe",
+      "address_line1": "123 Main St",
+      "city": "New York",
+      "state_province": "NY",
+      "postal_code": "10001",
+      "country": "USA"
+    }
   }'
 ```
 
@@ -284,27 +311,39 @@ See [api/README.md](api/README.md) for detailed API testing guide.
 
 ### Schema
 
+The schema uses BIGINT timestamp-based IDs with UUID foreign key references:
+
 ```sql
--- Orders table
+-- Orders table (simplified)
 CREATE TABLE orders (
-    id UUID PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
+    order_key UUID UNIQUE NOT NULL,
+    order_id VARCHAR(20) UNIQUE NOT NULL,  -- Business ID: 10-20251225-0000001
     customer_id VARCHAR(100) NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    total_amount NUMERIC(15, 2) NOT NULL,
+    order_type VARCHAR(20) NOT NULL,  -- STANDARD, GUEST, RETURN, etc.
+    channel VARCHAR(20) NOT NULL,     -- WEB, MOBILE, API, POS
+    status VARCHAR(50) NOT NULL,
+    billing_address_key UUID NOT NULL,
+    total_amount NUMERIC(19, 2) NOT NULL,
     currency VARCHAR(3) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );
 
--- Order items table
-CREATE TABLE order_items (
-    id BIGSERIAL PRIMARY KEY,
-    order_id UUID NOT NULL,
-    product_id VARCHAR(100) NOT NULL,
-    quantity INT NOT NULL CHECK (quantity > 0),
-    unit_price NUMERIC(15, 2) NOT NULL,
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+-- Order lines table
+CREATE TABLE order_lines (
+    id BIGINT PRIMARY KEY,
+    line_key UUID UNIQUE NOT NULL,
+    order_key UUID NOT NULL REFERENCES orders(order_key),
+    item_id BIGINT NOT NULL,
+    item_name VARCHAR(500) NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price NUMERIC(19, 2) NOT NULL,
+    fulfillment_type VARCHAR(20) NOT NULL,  -- STH, BOPS, STS
+    shipping_address_key UUID
 );
+
+-- Additional tables: addresses, order_line_status, release_snapshots, shipment_snapshots
 ```
 
 ### Migrations
@@ -586,46 +625,107 @@ Logs include:
 
 ### Authorization
 
-Uses `@Authorization` annotation from platform-commons:
+Uses `@BaseAuthController` annotation from spring-commons which provides base authentication and error handling:
 
 ```kotlin
-@PostMapping
-@Authorization(authorizedGroups = ["order-admins", "order-users"])
-fun createOrder(@RequestBody request: CreateOrderRequest): OrderResponse
+@BaseAuthController
+@BaseErrorResponse
+@RequestMapping
+class OrderController(private val orchestrator: OrderOrchestrator) {
+
+    @PostMapping
+    suspend fun createOrder(@Valid @RequestBody request: CreateOrderRequest): ResponseEntity<OrderResponse>
+}
 ```
-
-### Headers
-
-All requests require:
-- `X-User-Id`: User identifier
-- `X-User-Groups`: Comma-separated authorized groups
-- `X-Transaction-Id`: Unique transaction ID (optional)
 
 ## Order State Machine
 
 ```mermaid
 stateDiagram-v2
-    [*] --> DRAFT: Create Order
+    [*] --> CREATED: Create Order
 
-    DRAFT --> CONFIRMED: confirm()
-    DRAFT --> CANCELLED: cancel()
+    CREATED --> IN_RELEASE: inRelease()
+    CREATED --> RELEASED: release()
+    CREATED --> CANCELLED: cancel()
 
-    CONFIRMED --> SHIPPED: ship()
-    CONFIRMED --> CANCELLED: cancel()
+    IN_RELEASE --> RELEASED: release()
+    IN_RELEASE --> IN_SHIPMENT: inShipment()
+    IN_RELEASE --> CANCELLED: cancel()
+
+    RELEASED --> IN_SHIPMENT: inShipment()
+    RELEASED --> SHIPPED: ship()
+    RELEASED --> CANCELLED: cancel()
+
+    IN_SHIPMENT --> SHIPPED: ship()
+    IN_SHIPMENT --> CANCELLED: cancel()
 
     SHIPPED --> DELIVERED: deliver()
 
     DELIVERED --> [*]
     CANCELLED --> [*]
 
+    note right of IN_RELEASE
+        Partial release in progress
+        Some lines released
+    end note
+
+    note right of IN_SHIPMENT
+        Partial shipment in progress
+        Some lines shipped
+    end note
+
     note right of DELIVERED
         Terminal state
-        No further transitions
     end note
 
     note right of CANCELLED
         Terminal state
-        No further transitions
+    end note
+```
+
+## Order Line State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> CREATED: Create Line
+
+    CREATED --> ALLOCATED: allocate()
+    CREATED --> CANCELLED: cancel()
+
+    ALLOCATED --> RELEASED: release()
+    ALLOCATED --> CANCELLED: cancel()
+
+    RELEASED --> SHIPPED: ship()
+    RELEASED --> CANCELLED: cancel()
+
+    SHIPPED --> SHIPPED_AND_INVOICED: invoice()
+    SHIPPED --> DELIVERED: deliver()
+    SHIPPED --> RETURN_INITIATED: initiateReturn()
+
+    SHIPPED_AND_INVOICED --> DELIVERED: deliver()
+    SHIPPED_AND_INVOICED --> RETURN_INITIATED: initiateReturn()
+
+    DELIVERED --> RETURN_INITIATED: initiateReturn()
+
+    RETURN_INITIATED --> RETURN_COMPLETED: completeReturn()
+
+    RETURN_COMPLETED --> [*]
+    CANCELLED --> [*]
+
+    note right of ALLOCATED
+        Inventory reserved
+    end note
+
+    note right of RELEASED
+        Ready for fulfillment
+    end note
+
+    note right of RETURN_COMPLETED
+        Terminal state
+    end note
+
+    note right of CANCELLED
+        Terminal state
     end note
 ```
 
@@ -670,8 +770,9 @@ Strategic indexes for common queries:
 - Customer lookup: `idx_orders_customer_id`
 - Status filtering: `idx_orders_status`
 - Time-based queries: `idx_orders_created_at`
-- Composite: `idx_orders_customer_status`
-- Partial index for active orders
+- Order type and channel: `idx_orders_order_type`, `idx_orders_channel`
+- Item lookup: `idx_order_lines_item_id`
+- GIN indexes on JSONB payload columns for snapshot tables
 
 ### Connection Pooling
 

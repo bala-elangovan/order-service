@@ -338,7 +338,7 @@ class OrderTest :
                     lines = listOf(createTestOrderLine(lineNumber = 1)),
                     billingAddress = testAddress,
                 )
-                order = order.ship()
+                order = order.release()
 
                 val exception = shouldThrow<ValidationException> {
                     order.addLine(createTestOrderLine(lineNumber = 2))
@@ -391,7 +391,7 @@ class OrderTest :
                     lines = listOf(line1, line2),
                     billingAddress = testAddress,
                 )
-                order = order.ship()
+                order = order.release()
 
                 shouldThrow<ValidationException> {
                     order.removeLine(line1.id)
@@ -442,7 +442,7 @@ class OrderTest :
         }
 
         describe("Order status transitions") {
-            it("should ship order from CREATED status") {
+            it("should transition to IN_RELEASE from CREATED") {
                 val order = Order.create(
                     orderId = OrderId("10-20251225-0000001"),
                     customerId = CustomerId("CUST-12345"),
@@ -451,6 +451,81 @@ class OrderTest :
                     lines = listOf(createTestOrderLine()),
                     billingAddress = testAddress,
                 )
+
+                val inReleaseOrder = order.inRelease()
+
+                inReleaseOrder.status shouldBe OrderStatus.IN_RELEASE
+            }
+
+            it("should transition to RELEASED from CREATED") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                )
+
+                val releasedOrder = order.release()
+
+                releasedOrder.status shouldBe OrderStatus.RELEASED
+            }
+
+            it("should transition to RELEASED from IN_RELEASE") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                ).inRelease()
+
+                val releasedOrder = order.release()
+
+                releasedOrder.status shouldBe OrderStatus.RELEASED
+            }
+
+            it("should transition to IN_SHIPMENT from RELEASED") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                ).release()
+
+                val inShipmentOrder = order.inShipment()
+
+                inShipmentOrder.status shouldBe OrderStatus.IN_SHIPMENT
+            }
+
+            it("should ship order from RELEASED status") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                ).release()
+
+                val shippedOrder = order.ship()
+
+                shippedOrder.status shouldBe OrderStatus.SHIPPED
+            }
+
+            it("should ship order from IN_SHIPMENT status") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                ).release().inShipment()
 
                 val shippedOrder = order.ship()
 
@@ -466,7 +541,7 @@ class OrderTest :
                     lines = listOf(createTestOrderLine()),
                     billingAddress = testAddress,
                 )
-                order = order.ship()
+                order = order.release().ship()
 
                 val deliveredOrder = order.deliver()
 
@@ -488,6 +563,51 @@ class OrderTest :
                 cancelledOrder.status shouldBe OrderStatus.CANCELLED
             }
 
+            it("should cancel order from IN_RELEASE status") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                ).inRelease()
+
+                val cancelledOrder = order.cancel()
+
+                cancelledOrder.status shouldBe OrderStatus.CANCELLED
+            }
+
+            it("should cancel order from IN_SHIPMENT status") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                ).release().inShipment()
+
+                val cancelledOrder = order.cancel()
+
+                cancelledOrder.status shouldBe OrderStatus.CANCELLED
+            }
+
+            it("should fail to ship directly from CREATED status") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                )
+
+                shouldThrow<InvalidStateTransitionException> {
+                    order.ship()
+                }
+            }
+
             it("should fail to ship from DELIVERED status") {
                 var order = Order.create(
                     orderId = OrderId("10-20251225-0000001"),
@@ -497,7 +617,7 @@ class OrderTest :
                     lines = listOf(createTestOrderLine()),
                     billingAddress = testAddress,
                 )
-                order = order.ship().deliver()
+                order = order.release().ship().deliver()
 
                 val exception = shouldThrow<InvalidStateTransitionException> {
                     order.ship()
@@ -514,7 +634,7 @@ class OrderTest :
                     lines = listOf(createTestOrderLine()),
                     billingAddress = testAddress,
                 )
-                order = order.ship().deliver()
+                order = order.release().ship().deliver()
 
                 shouldThrow<InvalidStateTransitionException> {
                     order.cancel()
@@ -534,6 +654,46 @@ class OrderTest :
                 shouldThrow<InvalidStateTransitionException> {
                     order.deliver()
                 }
+            }
+
+            it("should identify partial fulfillment state") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                ).inRelease()
+
+                order.isPartialFulfillment() shouldBe true
+            }
+
+            it("should identify non-partial fulfillment state") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                ).release()
+
+                order.isPartialFulfillment() shouldBe false
+            }
+
+            it("should check if order can be cancelled") {
+                val order = Order.create(
+                    orderId = OrderId("10-20251225-0000001"),
+                    customerId = CustomerId("CUST-12345"),
+                    orderType = OrderType.STANDARD,
+                    channel = Channel.WEB,
+                    lines = listOf(createTestOrderLine()),
+                    billingAddress = testAddress,
+                )
+
+                order.canCancel() shouldBe true
+                order.release().ship().canCancel() shouldBe false
             }
         }
 
@@ -603,7 +763,7 @@ class OrderTest :
                     lines = listOf(createTestOrderLine()),
                     billingAddress = testAddress,
                 )
-                order = order.ship().deliver()
+                order = order.release().ship().deliver()
 
                 val exception = shouldThrow<ValidationException> {
                     order.updateBillingAddress(testAddress)
@@ -651,7 +811,7 @@ class OrderTest :
                     lines = listOf(createTestOrderLine()),
                     billingAddress = testAddress,
                 )
-                order = order.ship()
+                order = order.release()
 
                 order.isModifiable() shouldBe false
             }
@@ -665,7 +825,7 @@ class OrderTest :
                     lines = listOf(createTestOrderLine()),
                     billingAddress = testAddress,
                 )
-                order = order.ship().deliver()
+                order = order.release().ship().deliver()
 
                 order.isTerminal() shouldBe true
             }

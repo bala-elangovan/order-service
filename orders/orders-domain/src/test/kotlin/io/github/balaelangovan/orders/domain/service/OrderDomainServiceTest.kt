@@ -86,8 +86,11 @@ class OrderDomainServiceTest :
                 billingAddress = testAddress,
             )
             return when (status) {
-                OrderStatus.SHIPPED -> order.ship()
-                OrderStatus.DELIVERED -> order.ship().deliver()
+                OrderStatus.IN_RELEASE -> order.inRelease()
+                OrderStatus.RELEASED -> order.release()
+                OrderStatus.IN_SHIPMENT -> order.release().inShipment()
+                OrderStatus.SHIPPED -> order.release().ship()
+                OrderStatus.DELIVERED -> order.release().ship().deliver()
                 OrderStatus.CANCELLED -> order.cancel()
                 else -> order
             }
@@ -342,8 +345,44 @@ class OrderDomainServiceTest :
         }
 
         describe("updateStatus") {
-            it("should transition to SHIPPED") {
+            it("should transition to IN_RELEASE") {
                 val order = createTestOrder()
+                val orderSlot = slot<Order>()
+                coEvery { orderRepository.findById(order.id) } returns order
+                coEvery { orderRepository.save(capture(orderSlot)) } answers { orderSlot.captured }
+
+                val result = service.updateStatus(order.id, OrderStatus.IN_RELEASE)
+
+                result.status shouldBe OrderStatus.IN_RELEASE
+                coVerify { notificationPort.notifyOrderInRelease(any()) }
+            }
+
+            it("should transition to RELEASED") {
+                val order = createTestOrder()
+                val orderSlot = slot<Order>()
+                coEvery { orderRepository.findById(order.id) } returns order
+                coEvery { orderRepository.save(capture(orderSlot)) } answers { orderSlot.captured }
+
+                val result = service.updateStatus(order.id, OrderStatus.RELEASED)
+
+                result.status shouldBe OrderStatus.RELEASED
+                coVerify { notificationPort.notifyOrderReleased(any()) }
+            }
+
+            it("should transition to IN_SHIPMENT") {
+                val order = createTestOrder(OrderStatus.RELEASED)
+                val orderSlot = slot<Order>()
+                coEvery { orderRepository.findById(order.id) } returns order
+                coEvery { orderRepository.save(capture(orderSlot)) } answers { orderSlot.captured }
+
+                val result = service.updateStatus(order.id, OrderStatus.IN_SHIPMENT)
+
+                result.status shouldBe OrderStatus.IN_SHIPMENT
+                coVerify { notificationPort.notifyOrderInShipment(any()) }
+            }
+
+            it("should transition to SHIPPED") {
+                val order = createTestOrder(OrderStatus.RELEASED)
                 val orderSlot = slot<Order>()
                 coEvery { orderRepository.findById(order.id) } returns order
                 coEvery { orderRepository.save(capture(orderSlot)) } answers { orderSlot.captured }
@@ -388,9 +427,51 @@ class OrderDomainServiceTest :
             }
         }
 
+        describe("inReleaseOrder") {
+            it("should transition to IN_RELEASE and notify") {
+                val order = createTestOrder()
+                val orderSlot = slot<Order>()
+                coEvery { orderRepository.findById(order.id) } returns order
+                coEvery { orderRepository.save(capture(orderSlot)) } answers { orderSlot.captured }
+
+                val result = service.inReleaseOrder(order.id)
+
+                result.status shouldBe OrderStatus.IN_RELEASE
+                coVerify { notificationPort.notifyOrderInRelease(any()) }
+            }
+        }
+
+        describe("releaseOrder") {
+            it("should transition to RELEASED and notify") {
+                val order = createTestOrder()
+                val orderSlot = slot<Order>()
+                coEvery { orderRepository.findById(order.id) } returns order
+                coEvery { orderRepository.save(capture(orderSlot)) } answers { orderSlot.captured }
+
+                val result = service.releaseOrder(order.id)
+
+                result.status shouldBe OrderStatus.RELEASED
+                coVerify { notificationPort.notifyOrderReleased(any()) }
+            }
+        }
+
+        describe("inShipmentOrder") {
+            it("should transition to IN_SHIPMENT and notify") {
+                val order = createTestOrder(OrderStatus.RELEASED)
+                val orderSlot = slot<Order>()
+                coEvery { orderRepository.findById(order.id) } returns order
+                coEvery { orderRepository.save(capture(orderSlot)) } answers { orderSlot.captured }
+
+                val result = service.inShipmentOrder(order.id)
+
+                result.status shouldBe OrderStatus.IN_SHIPMENT
+                coVerify { notificationPort.notifyOrderInShipment(any()) }
+            }
+        }
+
         describe("shipOrder") {
             it("should ship order and notify") {
-                val order = createTestOrder()
+                val order = createTestOrder(OrderStatus.RELEASED)
                 val orderSlot = slot<Order>()
                 coEvery { orderRepository.findById(order.id) } returns order
                 coEvery { orderRepository.save(capture(orderSlot)) } answers { orderSlot.captured }

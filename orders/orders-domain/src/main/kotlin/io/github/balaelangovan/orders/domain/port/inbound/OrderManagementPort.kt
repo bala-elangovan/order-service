@@ -63,6 +63,36 @@ interface OrderManagementPort {
     suspend fun updateStatus(id: OrderId, newStatus: OrderStatus): Order
 
     /**
+     * Transitions the order to IN_RELEASE status (partial release).
+     *
+     * @param id the order identifier
+     * @return the updated Order
+     * @throws ResourceNotFoundException if the order is not found
+     * @throws InvalidStateTransitionException if transition is not allowed
+     */
+    suspend fun inReleaseOrder(id: OrderId): Order
+
+    /**
+     * Transitions the order to RELEASED status (full release).
+     *
+     * @param id the order identifier
+     * @return the updated Order
+     * @throws ResourceNotFoundException if the order is not found
+     * @throws InvalidStateTransitionException if transition is not allowed
+     */
+    suspend fun releaseOrder(id: OrderId): Order
+
+    /**
+     * Transitions the order to IN_SHIPMENT status (partial shipment).
+     *
+     * @param id the order identifier
+     * @return the updated Order
+     * @throws ResourceNotFoundException if the order is not found
+     * @throws InvalidStateTransitionException if transition is not allowed
+     */
+    suspend fun inShipmentOrder(id: OrderId): Order
+
+    /**
      * Transitions the order to SHIPPED status.
      *
      * @param id the order identifier
