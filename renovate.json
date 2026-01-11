@@ -1,0 +1,11 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "packageRules": [
+    {
+      "description": "Ignore custom JitPack plugins (managed manually)",
+      "matchPackagePatterns": ["^io\\.github\\.balaelangovan\\."],
+      "enabled": false
+    }
+  ]
+}
